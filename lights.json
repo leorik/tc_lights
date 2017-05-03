@@ -1,5 +1,5 @@
 {
-  "teamcity_url": "https://teamcity.jetbrains.com/",
+  "teamcity_url": "https://teamcity.jetbrains.com",
   "projects": [
     {
       "build_type_id": "Kotlin_112_CompilerTests",

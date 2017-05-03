@@ -10,14 +10,14 @@ use super::serde_derive;
 
 #[derive(Serialize, Deserialize)]
 pub struct LightsSettings {
-    teamcity_url: String,
-    projects: Vec<ProjectSettings>
+    pub teamcity_url: String,
+    pub projects: Vec<ProjectSettings>
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ProjectSettings {
-    build_type_id: String,
-    pin_id: String
+    pub build_type_id: String,
+    pub pin_id: String
 }
 
 pub fn read_settings() -> Result<LightsSettings, io::Error> {

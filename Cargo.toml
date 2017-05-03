@@ -1,0 +1,8 @@
+[package]
+name = "tc_lights"
+version = "0.1.0"
+authors = ["Leorik <Kardashoff@gmail.com>"]
+
+[dependencies]
+hyper = "0.10.9"
+serde = "1.0.2"

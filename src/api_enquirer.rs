@@ -47,7 +47,7 @@ impl Enquirer {
     }
 
     pub fn query_for_project(&self, tc_url : &String, project : &ProjectSettings) -> Result<BuildStatus, EnquirerError> {
-        let is_running = self.query_for_running_build(tc_url, project).unwrap();
+        let is_running = self.query_for_running_build(tc_url, project)?;
 
         if is_running { return Ok(BuildStatus::InProgress) }
 
@@ -60,7 +60,7 @@ impl Enquirer {
 
         let json_header = generate_json_accept_headers();
 
-        let mut response = &mut self.client.get(&running_build_query).headers(json_header).send().unwrap();
+        let mut response = &mut self.client.get(&running_build_query).headers(json_header).send()?;
 
         if response.status == StatusCode::NotFound {
             return Ok(true);

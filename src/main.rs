@@ -13,5 +13,7 @@ fn main() {
 
     let e = api_enquirer::Enquirer::new();
 
-    e.query_for_project(&settings.teamcity_url, &settings.projects[0]);
+    let r = e.query_for_project(&settings.teamcity_url, &settings.projects[0]);
+
+    println!("{}", r.unwrap());
 }

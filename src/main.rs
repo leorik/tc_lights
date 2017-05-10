@@ -9,11 +9,12 @@ mod settings;
 fn main() {
     let settings = settings::read_settings().unwrap();
 
-//    println!("{}", &api_enquirer::BuildStatus::Unknown.to_string());
-
     let e = api_enquirer::Enquirer::new();
 
     let r = e.query_for_project(&settings.teamcity_url, &settings.projects[0]);
 
-    println!("{}", r.unwrap());
+    match r {
+        Ok(s) => println!("{}", s),
+        Err(e) => panic!("{}", e)
+    }
 }

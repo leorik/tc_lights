@@ -8,17 +8,14 @@ use settings::LightsSettings;
 use signal::*;
 use signal::console_signal::ConsoleSignal;
 
-const ENQUIRER_SLEEP_TIME_IN_SECS: u64 = 30;
-const SIGNAL_SLEEP_TIME_IN_SECS: u64 = 1;
-
 pub fn run_enquirer_thread(settings: Arc<LightsSettings>, status_channel : Sender<Vec<StatusReport>>) -> JoinHandle<()> {
     let enquirer = Enquirer::new();
-    let duration = Duration::from_secs(ENQUIRER_SLEEP_TIME_IN_SECS);
 
     spawn(move || {
-        loop {
-            let local_settings = settings.as_ref();
+        let local_settings = settings.as_ref();
+        let duration = Duration::from_secs(local_settings.query_frequency_secs);
 
+        loop {
             let mut statuses : Vec<StatusReport> = Vec::new(); // TODO change to array
             for project in local_settings.projects.iter() {
                 statuses.push(
@@ -37,11 +34,13 @@ pub fn run_enquirer_thread(settings: Arc<LightsSettings>, status_channel : Sende
 }
 
 pub fn run_signal_thread(settings: Arc<LightsSettings>, status_channel : Receiver<Vec<StatusReport>>) -> JoinHandle<()> {
-    let duration = Duration::from_secs(SIGNAL_SLEEP_TIME_IN_SECS);
     let signaler = ConsoleSignal {};
 
     let mut status_cache : Option<Vec<StatusReport>> = None;
     spawn(move || {
+        let local_settings = settings.as_ref();
+        let duration = Duration::from_secs(local_settings.signal_frequency_secs);
+
         loop {
             let recv_result = status_channel.try_recv();
 

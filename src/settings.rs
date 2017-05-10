@@ -10,6 +10,8 @@ use super::serde_derive;
 #[derive(Serialize, Deserialize)]
 pub struct LightsSettings {
     pub teamcity_url: String,
+    pub query_frequency_secs: u64,
+    pub signal_frequency_secs: u64,
     pub projects: Vec<ProjectSettings>
 }
 

@@ -1,9 +1,15 @@
 {
   "teamcity_url": "https://teamcity.jetbrains.com",
+  "query_frequency_secs": 30,
+  "signal_frequency_secs": 1,
   "projects": [
     {
       "build_type_id": "Kotlin_112_CompilerTests",
-      "pin_id": "STUB"
+      "pin_id": "STUB1"
+    },
+    {
+      "build_type_id": "bt345",
+      "pin_id": "STUB2"
     }
   ]
 }

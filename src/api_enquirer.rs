@@ -1,4 +1,5 @@
 extern crate hyper_native_tls;
+extern crate serde_json;
 
 use std::convert::From;
 use std::fmt;
@@ -12,6 +13,9 @@ use super::hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use super::hyper::net::HttpsConnector;
 use super::hyper::status::StatusCode;
 use self::hyper_native_tls::NativeTlsClient;
+
+use self::serde_json::{Value as JsonValue, Error as JsonError};
+
 use settings::ProjectSettings;
 
 pub enum BuildStatus {
@@ -82,9 +86,16 @@ impl Enquirer {
         let mut response_body = String::new();
         response.read_to_string(&mut response_body)?;
 
-        println!("{}", response_body);
+        let response_value : JsonValue = serde_json::from_str(&response_body)?;
 
-        unimplemented!()
+        let status_value = response_value["status"].as_str()
+            .ok_or(EnquirerError::Generic { description: "Build status field in server response is not valid string".to_string() })?;
+
+        match status_value.as_ref() {
+            "SUCCESS" => Ok(BuildStatus::Success),
+            "FAILURE" => Ok(BuildStatus::Failure),
+            v @ _ => Err(EnquirerError::Generic { description: format!("Unexpected build status value: {}", v) })
+        }
     }
 }
 
@@ -103,21 +114,27 @@ fn generate_json_accept_headers() -> Headers {
 #[derive(Debug)]
 pub enum  EnquirerError {
     HttpError { description: String, cause: HyperError },
-    IoError { description: String, cause: IoError }
+    IoError { description: String, cause: IoError },
+    JsonError { description: String, cause: JsonError },
+    Generic { description: String }
 }
 
 impl Error for EnquirerError {
     fn description(&self) -> &str {
         match self {
             &EnquirerError::HttpError { ref description, .. } => &description,
-            &EnquirerError::IoError { ref description, .. } => &description
+            &EnquirerError::IoError { ref description, .. } => &description,
+            &EnquirerError::JsonError { ref description, .. } => &description,
+            &EnquirerError::Generic { ref description, .. } => &description
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match self {
             &EnquirerError::HttpError { ref cause, .. } => Some(cause),
-            &EnquirerError::IoError { ref cause, .. } => Some(cause)
+            &EnquirerError::IoError { ref cause, .. } => Some(cause),
+            &EnquirerError::JsonError { ref cause, .. } => Some(cause),
+            &EnquirerError::Generic { .. } => None
         }
     }
 }
@@ -138,6 +155,12 @@ impl From<HyperError> for EnquirerError {
 impl From<IoError> for EnquirerError {
     fn from(io_error: IoError) -> EnquirerError {
         EnquirerError::IoError { description: "Error on response reading".to_string(), cause: io_error }
+    }
+}
+
+impl From<JsonError> for EnquirerError {
+    fn from(json_error: JsonError) -> EnquirerError {
+        EnquirerError::JsonError { description: "Error on response deserialization".to_string(), cause: json_error }
     }
 }
 

@@ -5,6 +5,7 @@ extern crate hyper;
 
 mod api_enquirer;
 mod settings;
+mod signal;
 
 fn main() {
     let settings = settings::read_settings().unwrap();

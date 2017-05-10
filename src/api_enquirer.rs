@@ -141,8 +141,7 @@ impl Error for EnquirerError {
 
 impl fmt::Display for EnquirerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description());
-        Ok(())
+        write!(f, "{}", self.description())
     }
 }
 

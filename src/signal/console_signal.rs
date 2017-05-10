@@ -1,5 +1,5 @@
 use signal::{Signal, SignalError};
-use api_enquirer::BuildStatus;
+use api_enquirer::StatusReport;
 
 pub struct ConsoleSignal;
 

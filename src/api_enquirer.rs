@@ -32,10 +32,13 @@ impl fmt::Display for BuildStatus {
             BuildStatus::InProgress => "IN PROGRESS".to_string(),
             BuildStatus::Success => "SUCCESS".to_string(),
             BuildStatus::Failure => "FAILURE".to_string()
-        });
-
-        Ok(())
+        })
     }
+}
+
+pub struct StatusReport {
+    pub pin_id: String,
+    pub status: BuildStatus
 }
 
 pub struct Enquirer {
@@ -50,13 +53,15 @@ impl Enquirer {
         Enquirer { client: client }
     }
 
-    pub fn query_for_project(&self, tc_url : &String, project : &ProjectSettings) -> Result<BuildStatus, EnquirerError> {
+    pub fn query_for_project(&self, tc_url : &String, project : &ProjectSettings) -> Result<StatusReport, EnquirerError> {
+        let pin_id = project.pin_id.clone();
         let is_running = self.query_for_running_build(tc_url, project)?;
 
         if is_running == true {
-            Ok(BuildStatus::InProgress)
+            Ok(StatusReport { pin_id: pin_id, status: BuildStatus::InProgress })
         } else {
-            self.query_for_last_build(tc_url, project)
+            let status = self.query_for_last_build(tc_url, project)?;
+            Ok(StatusReport { pin_id: pin_id, status: status })
         }
     }
 
@@ -66,7 +71,7 @@ impl Enquirer {
 
         let json_header = generate_json_accept_headers();
 
-        let mut response = &mut self.client.get(&running_build_query).headers(json_header).send()?;
+        let response = &mut self.client.get(&running_build_query).headers(json_header).send()?;
 
         if response.status != StatusCode::NotFound {
             return Ok(true);

@@ -5,7 +5,6 @@ use std::io::BufReader;
 use std::io::Read;
 use std::fs::File;
 
-use self::serde_json::{Value, Error};
 use super::serde_derive;
 
 #[derive(Serialize, Deserialize)]

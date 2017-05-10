@@ -2,10 +2,10 @@ pub mod console_signal;
 
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use api_enquirer::BuildStatus;
+use api_enquirer::StatusReport;
 
 pub trait Signal {
-    fn signal_for_pin(pin_id: &String, status: &BuildStatus) -> Result<(), SignalError>;
+    fn signal_for_pin(&self, status_report: &StatusReport) -> Result<(), SignalError>;
 }
 
 #[derive(Debug)]

@@ -4,8 +4,8 @@ use api_enquirer::BuildStatus;
 pub struct ConsoleSignal;
 
 impl Signal for ConsoleSignal {
-    fn signal_for_pin(pin_id: &String, status: &BuildStatus) -> Result<(), SignalError> {
-        println!("For pin {}: {}", pin_id, status);
+    fn signal_for_pin(&self, status_report: &StatusReport) -> Result<(), SignalError> {
+        println!("For pin {}: {}", status_report.pin_id, status_report.status);
 
         Ok(())
     }

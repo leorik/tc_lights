@@ -6,7 +6,7 @@ use std::fmt;
 use std::error::Error;
 use std::io::{Read, Error as IoError};
 
-use super::hyper::client::{Client, IntoUrl};
+use super::hyper::client::Client;
 use super::hyper::error::Error as HyperError;
 use super::hyper::header::{Headers, Accept, qitem};
 use super::hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
@@ -50,43 +50,58 @@ impl Enquirer {
         let ssl = NativeTlsClient::new().unwrap();
         let connector = HttpsConnector::new(ssl);
         let client = Client::with_connector(connector);
-        Enquirer { client: client }
+        Enquirer { client }
     }
 
     pub fn query_for_project(&self, tc_url : &String, project : &ProjectSettings) -> Result<StatusReport, EnquirerError> {
         let pin_id = project.pin_id.clone();
-        let is_running = self.query_for_running_build(tc_url, project)?;
 
-        if is_running == true {
-            Ok(StatusReport { pin_id: pin_id, status: BuildStatus::InProgress })
-        } else {
-            let status = self.query_for_last_build(tc_url, project)?;
-            Ok(StatusReport { pin_id: pin_id, status: status })
+        match self.query_for_running_build(tc_url, project)  {
+            Result::Ok(is_running) => {
+                if is_running == true {
+                    Ok(StatusReport { pin_id, status: BuildStatus::InProgress })
+                } else {
+                    let status = self.query_for_last_build(tc_url, project)?;
+                    Ok(StatusReport { pin_id, status })
+                }
+            },
+            Result::Err(e) => Err(e)
         }
     }
 
-    fn query_for_running_build(&self, tc_url: &String, project : &ProjectSettings) -> Result<bool, EnquirerError> {
-        let running_build_query = format!("{}/guestAuth/app/rest/buildTypes/id:{}/builds/running:true",
+    fn query_for_running_build(&self, tc_url: &String,
+                               project : &ProjectSettings) -> Result<bool, EnquirerError> {
+        let running_build_query =
+            format!("{}/guestAuth/app/rest/buildTypes/id:{}/builds/running:true",
                                           tc_url.to_string(), project.build_type_id.to_string());
+
+        println!("Going to {}", &running_build_query);
 
         let json_header = generate_json_accept_headers();
 
-        let response = &mut self.client.get(&running_build_query).headers(json_header).send()?;
+        let response =
+            &mut self.client.get(&running_build_query).headers(json_header).send()?;
 
-        if response.status != StatusCode::NotFound {
-            return Ok(true);
-        } else {
-            return Ok(false);
+        match response.status {
+            StatusCode::Ok => Ok(true),
+            StatusCode::NotFound => Ok(false),
+            _ => Err(EnquirerError::Generic {
+                description: "Error during running status query".to_string()
+            })
         }
     }
 
-    fn query_for_last_build(&self, tc_url: &String, project : &ProjectSettings) -> Result<BuildStatus, EnquirerError> {
+    fn query_for_last_build(&self, tc_url: &String,
+                            project : &ProjectSettings) -> Result<BuildStatus, EnquirerError> {
         let last_build_query = format!("{}/guestAuth/app/rest/buildTypes/id:{}/builds/count:1",
                                           tc_url.to_string(), project.build_type_id.to_string());
 
+        println!("Going to {}", &last_build_query);
+
         let json_header = generate_json_accept_headers();
 
-        let mut response = &mut self.client.get(&last_build_query).headers(json_header).send()?;
+        let response =
+            &mut self.client.get(&last_build_query).headers(json_header).send()?;
 
         let mut response_body = String::new();
         response.read_to_string(&mut response_body)?;
@@ -94,12 +109,15 @@ impl Enquirer {
         let response_value : JsonValue = serde_json::from_str(&response_body)?;
 
         let status_value = response_value["status"].as_str()
-            .ok_or(EnquirerError::Generic { description: "Build status field in server response is not valid string".to_string() })?;
+            .ok_or(EnquirerError::Generic {
+                description: "Build status field in server response is not valid string".to_string()
+            })?;
 
         match status_value.as_ref() {
             "SUCCESS" => Ok(BuildStatus::Success),
             "FAILURE" => Ok(BuildStatus::Failure),
-            v @ _ => Err(EnquirerError::Generic { description: format!("Unexpected build status value: {}", v) })
+            v @ _ => Err(EnquirerError::Generic {
+                description: format!("Unexpected build status value: {}", v) })
         }
     }
 }
@@ -152,19 +170,22 @@ impl fmt::Display for EnquirerError {
 
 impl From<HyperError> for EnquirerError {
     fn from(hyper_error: HyperError) -> EnquirerError {
-        EnquirerError::HttpError { description: "Error on HTTP request processing".to_string(), cause: hyper_error }
+        EnquirerError::HttpError { description: "Error on HTTP request processing".to_string(),
+            cause: hyper_error }
     }
 }
 
 impl From<IoError> for EnquirerError {
     fn from(io_error: IoError) -> EnquirerError {
-        EnquirerError::IoError { description: "Error on response reading".to_string(), cause: io_error }
+        EnquirerError::IoError { description: "Error on response reading".to_string(),
+            cause: io_error }
     }
 }
 
 impl From<JsonError> for EnquirerError {
     fn from(json_error: JsonError) -> EnquirerError {
-        EnquirerError::JsonError { description: "Error on response deserialization".to_string(), cause: json_error }
+        EnquirerError::JsonError { description: "Error on response deserialization".to_string(),
+            cause: json_error }
     }
 }
 

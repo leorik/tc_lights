@@ -14,10 +14,10 @@ mod threads;
 mod signal;
 
 fn main() {
-    let settings = settings::read_settings().unwrap();
+    let settings_arc = Arc::new(settings::read_settings().unwrap());
 
     let (sender, receiver) : (Sender<Vec<StatusReport>>, Receiver<Vec<StatusReport>>) = channel();
-    let settings_arc = Arc::new(settings);
+
     let enquirer_handle = threads::run_enquirer_thread(settings_arc.clone(), sender);
     let signal_handle = threads::run_signal_thread(settings_arc.clone(), receiver);
 

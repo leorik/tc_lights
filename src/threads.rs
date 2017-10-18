@@ -20,9 +20,9 @@ pub fn run_enquirer_thread(settings: Arc<LightsSettings>, status_channel : Sende
             for project in local_settings.projects.iter() {
                 statuses.push(
                     enquirer.query_for_project(&local_settings.teamcity_url, project).unwrap_or_else(|err| {
-                        println!("Error during status query on project {} : {}", &project.pin_id, err);
+                        println!("Error during status query on project {} : {}", project.pin_id.as_ref(), err);
 
-                        StatusReport { pin_id: project.pin_id.clone(), status: BuildStatus::Unknown }
+                        StatusReport { pin_id: project.pin_id.as_ref(), status: BuildStatus::Unknown }
                     }));
             }
 

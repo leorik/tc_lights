@@ -18,7 +18,7 @@ pub struct LightsSettings {
 #[derive(Serialize, Deserialize)]
 pub struct ProjectSettings {
     pub build_type_id: String,
-    pub pin_id: String
+    pub pin_id: Box<String>
 }
 
 pub fn read_settings() -> Result<LightsSettings, io::Error> {

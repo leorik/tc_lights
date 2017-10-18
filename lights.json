@@ -1,14 +1,14 @@
 {
-  "teamcity_url": "https://teamcity.jetbrains.com",
+  "teamcity_url": "http://tap-web:5555",
   "query_frequency_secs": 30,
   "signal_frequency_secs": 1,
   "projects": [
     {
-      "build_type_id": "Kotlin_112_CompilerTests",
+      "build_type_id": "Cgis3_TassDev",
       "pin_id": "STUB1"
     },
     {
-      "build_type_id": "bt345",
+      "build_type_id": "HydraAdmin2_MainBuild",
       "pin_id": "STUB2"
     }
   ]

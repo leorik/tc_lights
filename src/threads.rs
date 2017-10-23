@@ -20,9 +20,9 @@ pub fn run_enquirer_thread(settings: Arc<LightsSettings>, status_channel : Sende
             for project in local_settings.projects.iter() {
                 statuses.push(
                     enquirer.query_for_project(&local_settings.teamcity_url, project).unwrap_or_else(|err| {
-                        println!("Error during status query on project {} : {}", project.pin_id.as_ref(), err);
+                        println!("Error during status query on project {} : {}", project.pin_id.clone(), err);
 
-                        StatusReport { pin_id: project.pin_id.as_ref(), status: BuildStatus::Unknown }
+                        StatusReport { pin_id: project.pin_id.clone(), status: BuildStatus::Unknown }
                     }));
             }
 
@@ -53,7 +53,7 @@ pub fn run_signal_thread(settings: Arc<LightsSettings>, status_channel : Receive
                 &Some(ref statuses) => {
                     for status in statuses.into_iter() {
                         signaler.signal_for_pin(&status).unwrap_or_else(|err| {
-                            println!("Error during pin signaling {} : {}", &status.pin_id, err);
+                            println!("Error during pin signaling {} : {}", status.pin_id, err);
                         });
                     }
                 },

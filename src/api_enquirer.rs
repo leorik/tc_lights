@@ -36,8 +36,8 @@ impl fmt::Display for BuildStatus {
     }
 }
 
-pub struct StatusReport<'a> {
-    pub pin_id: &'a String,
+pub struct StatusReport {
+    pub pin_id: String,
     pub status: BuildStatus
 }
 
@@ -54,15 +54,15 @@ impl Enquirer {
     }
 
     pub fn query_for_project(&self, tc_url : &String, project : &ProjectSettings) -> Result<StatusReport, EnquirerError> {
-        let pin_id = project.pin_id;
+        let pin_id = project.pin_id.clone();
 
         match self.query_for_running_build(tc_url, project)  {
             Result::Ok(is_running) => {
                 if is_running == true {
-                    Ok(StatusReport { pin_id: pin_id.as_ref(), status: BuildStatus::InProgress })
+                    Ok(StatusReport { pin_id: pin_id.clone(), status: BuildStatus::InProgress })
                 } else {
                     let status = self.query_for_last_build(tc_url, project)?;
-                    Ok(StatusReport { pin_id: pin_id.as_ref(), status })
+                    Ok(StatusReport { pin_id: pin_id.clone(), status })
                 }
             },
             Result::Err(e) => Err(e)

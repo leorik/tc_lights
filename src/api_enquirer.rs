@@ -80,13 +80,13 @@ impl Enquirer {
         let json_header = generate_json_accept_headers();
 
         let response =
-            &mut self.client.get(&running_build_query).headers(json_header).send()?;
+            &self.client.get(&running_build_query).headers(json_header).send()?;
 
         match response.status {
             StatusCode::Ok => Ok(true),
             StatusCode::NotFound => Ok(false),
             _ => Err(EnquirerError::Generic {
-                description: "Error during running status query".to_string()
+                description: format!("Error during running status query, status code {}", response.status_raw().0)
             })
         }
     }
